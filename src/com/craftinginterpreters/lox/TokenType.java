@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox;
 
+//This contains the token types
 enum TokenType {
 
     //Single-Character tokens
