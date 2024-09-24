@@ -68,16 +68,17 @@ public class GenerateAst {
             writer.println("            this." + name + " = " + name + ";"); // Initialize the field
         }
 
-        writer.println("}"); // End of constructor
+        writer.println("        }"); // End of constructor
 
         // Declare fields
         writer.println();
         for (String field : fields) {
-            writer.println("    final " + field + ";"); // Declare each field as final
+            writer.println("        final " + field + ";"); // Declare each field as final
         }
 
         writer.println();
-        writer.println("    }"); // End of class definition
+        writer.println("    }");// End of class definition
+        writer.println();
     }
 
 }
