@@ -44,7 +44,7 @@ public class GenerateAst {
         writer.println("abstract class " + baseName + " {");
 
         //defining visitor interface
-        defineVisitor(writer,baseName, types);
+        defineVisitor(writer, baseName, types);
 
         // Generate each type of expression
         for (String type : types) {
@@ -63,12 +63,12 @@ public class GenerateAst {
     }
 
     //This generates the visitor interface for all the types
-    private static void defineVisitor (PrintWriter writer, String baseName, List<String> types){
+    private static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {
         //Interface Definition
         writer.println("    interface Visitor<R> {");
 
 
-        for (String type : types){
+        for (String type : types) {
             String typename = type.split(":")[0].trim();
             writer.println("        R visit" + typename + baseName + "(" + typename + " " + baseName.toLowerCase() + ");");
             writer.println();

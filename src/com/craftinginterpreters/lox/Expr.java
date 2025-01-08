@@ -2,7 +2,7 @@ package com.craftinginterpreters.lox;
 
 import java.util.List;
 
-//This class is generated using GenerateAst 
+// This class is generated using GenerateAst 
 abstract class Expr {
     interface Visitor<R> {
         R visitBinaryExpr(Binary expr);
