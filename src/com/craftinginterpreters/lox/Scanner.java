@@ -59,7 +59,6 @@ class Scanner {
     }
 
     // Scans a single token from the source code
-    //TODO Chapter 4 question 4
     private void scanToken() {
         char c = advance(); // Get the next character
 
@@ -113,7 +112,11 @@ class Scanner {
 
             case '/':
                 if (match('/')) {
-                    while (peek() != '\n' && !isAtEnd()) advance();
+                    while (peek() != '\n' && !isAtEnd())
+                        advance();
+                } else if (match('*')) {
+                    while (peek() != '\n' && !isAtEnd())
+                        advance();
                 } else {
                     addToken(SLASH);
                 }
