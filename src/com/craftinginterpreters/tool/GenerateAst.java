@@ -40,7 +40,7 @@ public class GenerateAst {
         writer.println();
 
         // Write the abstract class declaration
-        writer.println("//This class is generated using GenerateAst ");
+        writer.println("// This class is generated using GenerateAst ");
         writer.println("abstract class " + baseName + " {");
 
         //defining visitor interface
