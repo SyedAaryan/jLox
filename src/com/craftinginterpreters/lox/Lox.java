@@ -60,10 +60,15 @@ public class Lox {
         // Scan tokens from the source
         List<Token> tokens = scanner.scanTokens();
 
-        // For now, just print the tokens to the console
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
+        // Initiate the parser and pass the tokens list
+        Parser parser = new Parser(tokens);
+        Expr expressions = parser.parse();
+
+        // Stop if there was a syntax error
+        if (hadError) return;
+
+        // print out the AST tree
+        System.out.println(new AstPrinter().print(expressions));
     }
 
     // Method to report an error with line number and message
@@ -75,5 +80,15 @@ public class Lox {
     private static void report(int line, String where, String message) {
         System.err.println("[line " + line + "] Error " + where + ": " + message); // Print the error message
         hadError = true; // Set hadError to true
+    }
+
+    // This reports an error at a given token
+    static void error(Token token, String message) {
+        // Checks if the token is  EOF
+        if (token.type == TokenType.EOF) {
+            report(token.line, " at end ", message);
+        } else {
+            report(token.line, " at '" + token.lexeme + "'", message);
+        }
     }
 }
