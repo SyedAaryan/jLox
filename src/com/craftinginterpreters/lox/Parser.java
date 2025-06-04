@@ -28,7 +28,6 @@ class Parser {
         }
     }
 
-
     //expression     → equality ;
     private Expr expression() {
         return equality();

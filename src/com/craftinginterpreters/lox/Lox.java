@@ -9,8 +9,12 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
+
+    private static final Interpreter interpreter = new Interpreter();
+
     // Boolean to track if an error has occurred
     static Boolean hadError = false;
+    static Boolean hadRuntimeError = false;
 
     public static void main(String[] args) throws IOException {
         // Check the number of command-line arguments
@@ -35,6 +39,7 @@ public class Lox {
         run(new String(bytes, Charset.defaultCharset()));
 
         if (hadError) System.exit(65); // Exit with error code 65
+        if (hadRuntimeError) System.exit(70);
     }
 
     //This run when the language is typed in the prompt
@@ -67,13 +72,17 @@ public class Lox {
         // Stop if there was a syntax error
         if (hadError) return;
 
-        // print out the AST tree
-        System.out.println(new AstPrinter().print(expressions));
+        interpreter.interpret(expressions);
     }
 
     // Method to report an error with line number and message
     static void error(int line, String message) {
         report(line, "", message);
+    }
+
+    static void runtimeError(RunTimeError error) {
+        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        hadRuntimeError = true;
     }
 
     // Method to format and print error messages
