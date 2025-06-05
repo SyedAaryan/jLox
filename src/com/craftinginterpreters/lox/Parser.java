@@ -24,14 +24,26 @@ class Parser {
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
         return statements;
     }
 
-    //expression     → equality ;
+    //expression     → assignment ;
     private Expr expression() {
-        return equality();
+        return assignment();
+    }
+
+    // declaration    → varDecl| statement ;
+    private Stmt declaration() {
+        try {
+            //checks for variable declaration, if yes, calls the varDeclaration() function, else statement().
+            if (match(VAR)) return varDeclaration();
+            return statement();
+        } catch (ParserError error) {
+            synchronize();
+            return null;
+        }
     }
 
     //statement      → exprStmt| printStmt ;
@@ -43,6 +55,7 @@ class Parser {
         return expressionStatement();
     }
 
+    //printStmt      → "print" expression ";" ;
     private Stmt printStatement() {
         // Expression function is called and the value returned by it is stored in "value"
         Expr value = expression();
@@ -53,11 +66,43 @@ class Parser {
         return new Stmt.Print(value);
     }
 
+    //varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+    private Stmt varDeclaration() {
+        // Consumes the "IDENTIFIER", i,e the name of the variable
+        Token name = consume(IDENTIFIER, "Expect variable Name.");
+
+        // Initially keeps the initializer, i,e after the variable declaration as null
+        Expr initializer = null;
+        if (match(EQUAL)) { // Checks for "=", if present, stores the expression after "=" in initializer
+            initializer = expression();
+        }
+
+        // Semicolon must be there after the statement
+        consume(SEMICOLON, "Expect ';' after variable declaration");
+        return new Stmt.Var(name, initializer);
+    }
+
     //Works similar to the printStatement() function
     private Stmt expressionStatement() {
         Expr expr = expression();
         consume(SEMICOLON, "Expect ';' after the expression.");
         return new Stmt.Expression(expr);
+    }
+
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            }
+            error(equals, "Invalid assignment target.");
+        }
+        return expr;
     }
 
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -142,7 +187,7 @@ class Parser {
         return primary();
     }
 
-    //primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+    //primary        → "true" | "false" | "nil"| NUMBER | STRING| "(" expression ")"| IDENTIFIER ;
     // Since most of the cases are terminals, this is pretty straight forward
     private Expr primary() {
 
@@ -153,6 +198,10 @@ class Parser {
         if (match(NUMBER, STRING)) {
             // Remember that the reason for using "previous" is "match" advances the token list after checking, hence the previous
             return new Expr.Literal(previous().literal);
+        }
+
+        if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
         }
 
         if (match(LEFT_PAREN)) {
@@ -217,7 +266,7 @@ class Parser {
         return new ParserError();
     }
 
-    // For later
+    //For parser error
     private void synchronize() {
         advance();
 
