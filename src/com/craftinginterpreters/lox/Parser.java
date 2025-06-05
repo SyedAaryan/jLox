@@ -46,10 +46,11 @@ class Parser {
         }
     }
 
-    //statement      → exprStmt| printStmt ;
+    //statement      → exprStmt| printStmt| block ;
     private Stmt statement() {
         // If the next token is "print", it returns the value returned by printStatement()
         if (match(PRINT)) return printStatement();
+        if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         //else it returns the value returned by expressionStatement()
         return expressionStatement();
@@ -87,6 +88,21 @@ class Parser {
         Expr expr = expression();
         consume(SEMICOLON, "Expect ';' after the expression.");
         return new Stmt.Expression(expr);
+    }
+
+    // Used to parse blocks
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        //Checks for "{" and for "EOF"
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            // Calls the declaration function for every statement in the block
+            statements.add(declaration());
+        }
+
+        // Checks for "}" at the end of the block.
+        consume(RIGHT_BRACE, "Expect '}' after a block");
+        return statements;
     }
 
     private Expr assignment() {
