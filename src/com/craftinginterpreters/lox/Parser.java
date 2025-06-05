@@ -46,12 +46,14 @@ class Parser {
         }
     }
 
-    //statement      → exprStmt|ifStmt| printStmt| block ;
+    //statement      → exprStmt|ifStmt| printStmt|whileStmt| block ;
     private Stmt statement() {
         // If the token is "if", it returns the value returned by ifStatement()
         if (match(IF)) return ifStatement();
         // If the next token is "print", it returns the value returned by printStatement()
         if (match(PRINT)) return printStatement();
+        // for while loops
+        if (match(WHILE)) return whileStatement();
         // If its "{", it executes block
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
@@ -100,6 +102,16 @@ class Parser {
         // Semicolon must be there after the statement
         consume(SEMICOLON, "Expect ';' after variable declaration");
         return new Stmt.Var(name, initializer);
+    }
+
+    private Stmt whileStatement() {
+        // It is not complicated stuff, same as previous functions.
+        consume(LEFT_PAREN, "Expect '(' after 'while'.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after while condition.");
+        Stmt body = statement();
+
+        return new Stmt.While(condition, body);
     }
 
     //Works similar to the printStatement() function
