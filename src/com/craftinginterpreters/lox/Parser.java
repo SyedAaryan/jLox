@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -20,17 +21,43 @@ class Parser {
     }
 
     // Method to kick the parsing
-    Expr parse() {
-        try {
-            return expression();
-        } catch (ParserError error) {
-            return null;
+    List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+        return statements;
     }
 
     //expression     → equality ;
     private Expr expression() {
         return equality();
+    }
+
+    //statement      → exprStmt| printStmt ;
+    private Stmt statement() {
+        // If the next token is "print", it returns the value returned by printStatement()
+        if (match(PRINT)) return printStatement();
+
+        //else it returns the value returned by expressionStatement()
+        return expressionStatement();
+    }
+
+    private Stmt printStatement() {
+        // Expression function is called and the value returned by it is stored in "value"
+        Expr value = expression();
+
+        // Checks for semicolon after the end of the expression
+        consume(SEMICOLON, "Expect ';' after value.");
+
+        return new Stmt.Print(value);
+    }
+
+    //Works similar to the printStatement() function
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(SEMICOLON, "Expect ';' after the expression.");
+        return new Stmt.Expression(expr);
     }
 
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
