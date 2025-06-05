@@ -46,14 +46,33 @@ class Parser {
         }
     }
 
-    //statement      → exprStmt| printStmt| block ;
+    //statement      → exprStmt|ifStmt| printStmt| block ;
     private Stmt statement() {
+        // If the token is "if", it returns the value returned by ifStatement()
+        if (match(IF)) return ifStatement();
         // If the next token is "print", it returns the value returned by printStatement()
         if (match(PRINT)) return printStatement();
+        // If its "{", it executes block
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         //else it returns the value returned by expressionStatement()
         return expressionStatement();
+    }
+
+    //ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
+    private Stmt ifStatement() {
+        // The first there lines checks the following part of the grammar '"(" expression ")"', "if" is already parsed before this function is called
+        consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Stmt thenBranch = statement(); // "statement"
+        Stmt elseBranch = null; // initially keeping the else branch as null.
+        if (match(ELSE)) { // If "else" is present, then the expression followed by it is stored in elseBranch.
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     //printStmt      → "print" expression ";" ;
