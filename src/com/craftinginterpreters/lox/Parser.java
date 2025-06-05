@@ -1,6 +1,7 @@
 package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -46,8 +47,10 @@ class Parser {
         }
     }
 
-    //statement      → exprStmt|ifStmt| printStmt|whileStmt| block ;
+    //statement      → exprStmt|ifStmt| printStmt|whileStmt| forStmt| block ;
     private Stmt statement() {
+        // If the token is "for"
+        if (match(FOR)) return forStatement();
         // If the token is "if", it returns the value returned by ifStatement()
         if (match(IF)) return ifStatement();
         // If the next token is "print", it returns the value returned by printStatement()
@@ -59,6 +62,54 @@ class Parser {
 
         //else it returns the value returned by expressionStatement()
         return expressionStatement();
+    }
+
+    //forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";"expression? ")" statement ;
+    // for "for loop", we are using the components from the interpreter instead of making new type
+    private Stmt forStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+        //Initializer
+        Stmt initializer;
+        if (match(SEMICOLON)) {
+            initializer = null;
+        } else if (match(VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        // Condition
+        Expr condition = null;
+        if (!check(SEMICOLON)) {
+            condition = expression();
+        }
+        consume(SEMICOLON, "Expect ';' after loop condition.");
+
+        //Incrementation
+        Expr increment = null;
+        if (!check(RIGHT_PAREN)) {
+            increment = expression();
+        }
+        consume(RIGHT_PAREN, "Expect ')' after the clauses.");
+
+        Stmt body = statement();
+
+        if (increment != null) {
+            body = new Stmt.Block(
+                    Arrays.asList(
+                            body,
+                            new Stmt.Expression(increment)));
+        }
+
+        if (condition == null) condition = new Expr.Literal(true);
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
     }
 
     //ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
@@ -104,6 +155,7 @@ class Parser {
         return new Stmt.Var(name, initializer);
     }
 
+    //whileStmt      → "while" "(" expression ")" statement ;
     private Stmt whileStatement() {
         // It is not complicated stuff, same as previous functions.
         consume(LEFT_PAREN, "Expect '(' after 'while'.");
@@ -153,6 +205,7 @@ class Parser {
         return expr;
     }
 
+    //logic_or       → logic_and ( "or" logic_and )* ;
     private Expr or() {
         Expr expr = and();
 
@@ -165,6 +218,7 @@ class Parser {
         return expr;
     }
 
+    //logic_and      → equality ( "and" equality )* ;
     private Expr and() {
         Expr expr = equality();
 
