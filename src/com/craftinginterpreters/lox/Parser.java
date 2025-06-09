@@ -56,6 +56,8 @@ class Parser {
         if (match(IF)) return ifStatement();
         // If the next token is "print", it returns the value returned by printStatement()
         if (match(PRINT)) return printStatement();
+        // For return statement
+        if (match(RETURN)) return returnStatement();
         // for while loops
         if (match(WHILE)) return whileStatement();
         // If its "{", it executes block
@@ -138,6 +140,18 @@ class Parser {
         consume(SEMICOLON, "Expect ';' after value.");
 
         return new Stmt.Print(value);
+    }
+
+    //returnStmt     → "return" expression? ";" ;
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr value = null;
+        if (!check(SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after return value.");
+        return new Stmt.Return(keyword, value);
     }
 
     //varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
